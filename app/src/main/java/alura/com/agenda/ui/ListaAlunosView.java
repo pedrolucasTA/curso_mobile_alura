@@ -6,20 +6,24 @@ import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import alura.com.agenda.dao.AlunoDAO;
+import alura.com.agenda.asynctask.BuscaAlunosTask;
+import alura.com.agenda.asynctask.RemoveAlunoTask;
+import alura.com.agenda.database.Agenda.AgendaDatabase;
+import alura.com.agenda.database.Agenda.dao.AlunoDao;
 import alura.com.agenda.model.Aluno;
 import alura.com.agenda.ui.adapter.ListaAlunosAdapter;
 
 public class ListaAlunosView {
 
     private final ListaAlunosAdapter adapter;
-    private final AlunoDAO dao;
+    private final AlunoDao dao;
     private final Context context;
 
     public ListaAlunosView(Context context) {
         this.context = context;
         this.adapter = new ListaAlunosAdapter(this.context);
-        dao = new AlunoDAO();
+        dao = AgendaDatabase.getInstance(context)
+                .getRoomAlunoDAO();
     }
 
     public void confirmaRemocao(final MenuItem item) {
@@ -38,12 +42,11 @@ public class ListaAlunosView {
     }
 
     public void atualizaAlunos() {
-        adapter.atualiza(dao.todos());
+        new BuscaAlunosTask(dao, adapter).execute();
     }
 
     private void remove(Aluno aluno) {
-        dao.remove(aluno);
-        adapter.remove(aluno);
+        new RemoveAlunoTask(dao, adapter, aluno).execute();
     }
 
     public void configuraAdapter(ListView listaDeAlunos) {
